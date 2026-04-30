@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 6px;
+            text-align: center;
+        }
+        th {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        fetch("https://dummyjson.com/users")
+        .then(res=>res.json())
+        .then(data=>{
+            console.log(data);
+            const users=data.users;
+            const thead=document.querySelector("thead");
+            const tbody=document.querySelector("tbody");
+            const keys=Object.keys(users[0]);
+            let head="<tr>"
+            keys.forEach(key=>{
+                head+=`<th>${key}</th>`
+            })
+            head+="</tr>"
+            thead.innerHTML+=head;
+            let row="";
+            users.forEach(user=>{
+                row+="<tr>"
+                keys.forEach(key=>{
+                    let value=user[key];
+                    if(key==="image"){
+                        value=`<img src="${value}" width="40" height="40">`;
+                    }
+                    else if(key==="eyeColor"){
+                        value=`<div style="background:${value};border-radius:20px;width:20px;height:20px;"></div>${value}`
+                    }
+                    else if(key==="hair"){
+                        const hair=user.hair;
+                        value=`<div style="background:${hair.color};border-radius:20px;width:20px;height:20px;"></div>${hair.type}`;
+                        
+                    }
+                    else if (key === "address") {
+                        const addr = user.address;
+                        value = `${addr.address}, ${addr.city}, ${addr.state},${addr.stateCode},${addr.postalCode},${addr.coordinates.lat},${addr.coordinates.lng}` ;
+                    }
+                    else if(key==="bank"){
+                        const bank=user.bank;
+                        value=`${bank.cardExpire},${bank.cardNumber},${bank.cardType},${bank.currency},${bank.iban}`;
+                    }
+                    else if(key==="company"){
+                        const comp=user.company;
+                        value=`${comp.department},${comp.name},${comp.title}`
+                    }
+                    else if(key==="crypto"){
+                        const crypto=user.crypto;
+                        value=`${crypto.coin},${crypto.network},${crypto.wallet}`
+                    }
+
+                    row+= `<td>${value}</td>`
+                })
+                row+='</tr>';
+                
+            })
+            tbody.innerHTML+=row;
+
+        })
+    </script>
+</body>
+</html>
