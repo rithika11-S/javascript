@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+
+        input.error {
+            border: 2px solid red;
+            background-color: #ffe6e6;
+        }
+
+        input.success {
+            border: 2px solid green;
+            background-color: #e6ffe6;
+        }
+
+        .error-text {
+            color: red;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <form id="userForm">
+        <p>
+            <label for="name">Enter your name :</label>
+            <input type="text" id="name" placeholder="user name">
+            <span class="error-text" id="nameError"></span>
+        </p>
+        <p>
+            <label for="age">Enter your age :</label>
+            <input type="number" id="age" placeholder="18">
+            <span class="error-text" id="ageError"></span>
+        </p>
+        <p>
+            <label for="score">Enter your Score :</label>
+            <input type="number" id="score">
+            <span class="error-text" id="scoreError"></span>
+        </p>
+        <button type="submit" id="button">ADD USER</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>ID
+                    <button onclick="sortTable('id','asc')">⬆️</button>
+                    <button onclick="sortTable('id','desc')">⬇️</button>
+                </th>
+                <th>
+                    Name
+                    <button onclick="sortTable('name','asc')">⬆️</button>
+                    <button onclick="sortTable('name','desc')">⬇️</button>
+                </th>
+
+                <th>
+                    Age
+                    <button onclick="sortTable('age','asc')">⬆️</button>
+                    <button onclick="sortTable('age','desc')">⬇️</button>
+                </th>
+
+                <th>
+                    Score
+                    <button onclick="sortTable('score','asc')">⬆️</button>
+                    <button onclick="sortTable('score','desc')">⬇️</button>
+                </th>
+
+                <th>
+                    Grade
+                    <button onclick="sortTable('grade','asc')">⬆️</button>
+                    <button onclick="sortTable('grade','desc')">⬇️</button>
+                </th>
+
+                <th>
+                    Created
+                    <button onclick="sortTable('createdAt','asc')">⬆️</button>
+                    <button onclick="sortTable('createdAt','desc')">⬇️</button>
+                </th>
+                <th>Edited</th>
+                <th>Action 1</th>
+                <th>Action 2</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+    <script>
+        let users = [];
+        let editedId = -1;
+        function capitalizeName(name) {
+            return name.split(" ").map(n => n.at(0).toUpperCase() + n.slice(1)).join(" ")
+        }
+        function grade(score) {
+            switch (true) {
+                case score > 90:
+                    return "A";
+                    break;
+                case score > 75:
+                    return "B";
+                    break;
+                case score > 60:
+                    return "C";
+                    break;
+                case score > 50:
+                    return "D";
+                    break;
+                default:
+                    return "E";
+            }
+        }
+        function fetchUser() {
+            fetch("https://69c63482f272266f3eac1c43.mockapi.io/Userprocessingsystem/api/vi/users")
+                .then(res => res.json())
+                .then(data => {
+                    users = data
+                    showTable();
+                    // console.log(users);
+                })
+                .catch(err=>console.log(err))
+        }
+        fetchUser()
+        const form = document.getElementById("userForm")
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const name = document.getElementById("name").value.trim();
+            const age = parseInt(document.getElementById("age").value);
+            const score = parseInt(document.getElementById("score").value);
+            const nameInput = document.getElementById("name");
+            const ageInput = document.getElementById("age");
+            const scoreInput = document.getElementById("score");
+            const nameError = document.getElementById("nameError");
+            const ageError = document.getElementById("ageError");
+            const scoreError = document.getElementById("scoreError");
+            nameError.innerHTML = "";
+            ageError.innerHTML = "";
+            scoreError.innerHTML = "";
+            let isValid = true;
+            if (name === "") {
+                nameInput.classList.add("error")
+                nameError.textContent = "Name is required";
+                isValid = false;
+            }
+            else {
+                nameInput.classList.add("success")
+            }
+            if (isNaN(age) || age < 18) {
+                ageInput.classList.add("error")
+                ageError.textContent = "Enter valid age";
+                isValid = false;
+            }
+            else {
+                ageInput.classList.add("success")
+            }
+            if (isNaN(score) || score < 0 || score > 100) {
+                scoreInput.classList.add("error")
+                scoreError.textContent = "Enter valid age";
+                isValid = false;
+            }
+            else {
+                scoreInput.classList.add("success");
+            }
+            if (isValid) {
+                if (editedId === -1) {
+                    fetch("https://69c63482f272266f3eac1c43.mockapi.io/Userprocessingsystem/api/vi/users", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            name: capitalizeName(name),
+                            age: age,
+                            score: score,
+                            grade: grade(score),
+                            createdAt: new Date(Date.now()),
+                            editedAt: new Date(Date.now())
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(() => fetchUser())
+                    .catch(err=>console.error(err))
+                }
+                else {
+                    fetch(`https://69c63482f272266f3eac1c43.mockapi.io/Userprocessingsystem/api/vi/users/${editedId}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            name: capitalizeName(name),
+                            age: age,
+                            score: score,
+                            grade: grade(score),
+                            editedAt: new Date(Date.now())
+                        })
+                    })
+                    .then(res => res.json())
+                    .then((updateUser) => {
+                        const index = users.findIndex(user => user.id == editedId);
+                        users[index] = updatedUser; 
+                        editedId = -1;
+                        document.getElementById("button").innerText = "ADD USER";
+                        showTable();
+                    })
+                    .catch(err=>console.error(err))
+                }
+                document.getElementById("name").value="";
+                document.getElementById("age").value="";
+                document.getElementById("score").value="";
+            }
+        })
+
+
+        function showTable() {
+            const tbody = document.querySelector("tbody")
+            tbody.innerHTML = ""
+            users.forEach(user => {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.age}</td>
+                    <td>${user.score}</td>
+                    <td>${user.grade}</td>
+                    <td>${new Date(user.createdAt).toLocaleString()}</td>
+                    <td>${new Date(user.editedAt).toLocaleString()}</td>
+                    <td><button onClick="handleEdit(${user.id})">Edit</button></td>
+                    <td><button onClick="handleDelete(${user.id})">Remove</button></td>
+                </tr>
+                `
+            })
+        }
+        function handleEdit(id){
+            const user=users.find(user=>user.id==id)
+            document.getElementById("name").value=user.name;
+            document.getElementById("age").value=user.age;
+            document.getElementById("score").value=user.score;
+            document.getElementById("button").innerText="UPDATE";
+            editedId=id;     
+        }
+
+        function handleDelete(id){
+            fetch(`https://69c63482f272266f3eac1c43.mockapi.io/Userprocessingsystem/api/vi/users/${id}`,{
+                method:"DELETE"
+            })
+
+            .then(()=>{
+                if(editedId===id){
+                    editedId=-1;
+                    document.getElementById("name").value="";
+                    document.getElementById("age").value="";
+                    document.getElementById("score").value="";
+                    document.getElementById("button").innerText="ADD USER";
+                }
+                users = users.filter(user => user.id !=id);
+                showTable();
+            })
+            .catch(err=>console.log(err))
+
+        }
+
+        function sortTable(field, direction) {
+            users.sort((a, b) => {
+                if (field==="id" || field === "age" || field === "score") {
+                    return direction === "asc"? a[field] - b[field]: b[field] - a[field];
+                }
+                if (field === "createdAt") {
+                    return direction === "asc"? new Date(a[field]) - new Date(b[field]): new Date(b[field]) - new Date(a[field]);
+                }
+                return direction === "asc"? a[field].localeCompare(b[field]): b[field].localeCompare(a[field]);
+            });
+
+            showTable();
+        }
+    </script>
+</body>
+
+</html>
